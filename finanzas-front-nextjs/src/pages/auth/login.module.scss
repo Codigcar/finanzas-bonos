@@ -1,0 +1,54 @@
+@import "@styles/settings";
+
+.CInput {
+  &Div {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.8rem;
+    width: 100%;
+  }
+  &Label {
+    padding: 12px 0px;
+  }
+  &Input {
+    padding: 7px 5px;
+    border-radius: 8px;
+    border: 1.8px solid $gray;
+  }
+  &BorderError {
+    border-color: $red;
+  }
+}
+
+.CButton {
+  &Div {
+    width: 100%;
+  }
+  &Button {
+    background-color: $primary-color;
+    width: 100%;
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    margin-top: 20px;
+    padding: 8px 10px;
+  }
+  &Button2 {
+    background-color: white;
+    width: 100%;
+    color: $primary-color;
+    border: 1px solid $primary-color;
+    text-align: center;
+    border-radius: 5px;
+    margin-top: 20px;
+    padding: 8px 10px;
+  }
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: $primary-color;
+  margin-bottom: 20px;
+ 
+}

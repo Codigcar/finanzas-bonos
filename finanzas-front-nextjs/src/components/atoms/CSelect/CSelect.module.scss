@@ -1,0 +1,21 @@
+@import '@styles/settings';
+
+.div {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: .8rem;
+}
+.label{
+    padding: 12px 0px;
+}
+.select {
+    border: 1.8px solid $gray;
+    padding: 7px 5px;
+    border-radius: 8px;
+}
+.error{
+    border-color: red;
+}
+.borderError{
+    color:red;
+}

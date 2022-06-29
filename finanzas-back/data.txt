@@ -1,0 +1,188 @@
+Algoritmo BonosCorporativos
+	// LOGIN
+	Definir validar Como Entero
+	Definir nombre,clave Como Caracter
+	// Elegir opcion 
+	Definir opc Como Caracter
+	// Datos de entrada
+	Definir VNominal,VComercial,TI,TAD,IR,inv Como Real
+	Definir NA,DxA Como Real
+	Definir Fcupon,TDeTasa,Capit,FEmision Como Caracter
+	// Datos de intermedios
+	Definir FreCupon,DiasCapt,PerAnno,TPeriodo Como Real
+	Definir TEA,TEP,COK,CE,CB Como Real
+	Definir valor1,valor2,valor3 Como Real
+	Definir contador Como Entero
+	// Datos de salida
+	Definir PrecioA,UtiPer,Duracion,Convexidad,Total,DuracionM,TCEAE,TCEAEE,TREAB Como Real
+	Repetir
+		Repetir
+			Escribir '-----LOGIN-----'
+			Escribir 'User'
+			Leer nombre
+			Escribir 'Password'
+			Leer clave
+			Si nombre<>'admin' O clave<>'123' Entonces
+				Borrar Pantalla
+				Escribir 'El usuario o contraseña es incorrecto, intentelo nuevamente.'
+				validar <- 1
+			SiNo
+				validar <- 0
+				Borrar Pantalla
+			FinSi
+		Hasta Que validar<>1
+		Repetir
+			Escribir 'Elegir la opcion:'
+			Escribir 'a) Crear bono'
+			Escribir 'b) Borrar bono'
+			Escribir 'c) Cerrar sesion'
+			Leer opc
+			Borrar Pantalla
+			Si opc=='a' Entonces
+				Escribir 'Ingresa los datos:'
+				Escribir 'Valor nominal'
+				Leer VNominal
+				
+				Escribir 'Valor comercial'
+				Leer VComercial
+				
+				Escribir 'Nº de años'
+				Leer NA
+				
+				Escribir 'Frecuencia del cupon'
+				Escribir 'Mensual(M) Bimestral(B) Trimestral(T) Cuatrimestral(C) Semestral(S) Anual(A)'
+				Leer Fcupon;
+
+				Escribir 'Dias por año'
+				Leer DxA;
+				
+				Escribir 'Tipo de tasa de interes'
+				Escribir 'Efectiva(E) Nominal(N)'
+				Leer TDeTasa;
+				
+				Si TDeTasa=="n" Entonces
+					Escribir 'Capitalizacion'
+					Escribir 'Diario(D) Quincenal(Q) Mensual(M) Bimestral(B) Trimestral(T) Cuatrimestral(C) Semestral(S) Anual(A)'
+					Leer Capit;
+					
+				FinSi
+				Escribir 'Tasa de interes'
+				Leer TI
+				TI <- TI/100
+
+				Escribir 'Tasa anual de descuento'
+				Leer TAD
+				TAD <- TAD/100
+
+				Escribir 'Importe a la renta'
+				Leer IR
+				IR <- IR/100
+
+				Escribir 'Fecha de Emisión'
+				Leer FEmision
+
+				Escribir 'Inversión'
+				Leer inv;
+
+				// asignas valores
+				CE <- VComercial*2.2/100
+				CB <- VComercial*0.95/100
+
+				// frecuencia cutpon
+				Segun Fcupon  Hacer
+					"m":
+						FreCupon <- 30
+					"b":
+						FreCupon <- 60
+					"t":
+						FreCupon <- 90
+					"c":
+						FreCupon <- 120
+					"s":
+						FreCupon <- 180
+					"a":
+						FreCupon <- 360
+				FinSegun
+				
+				// capitalizacion
+				Segun Capit  Hacer
+					"d":
+						DiasCapt <- 1
+					"q":
+						DiasCapt <- 15
+					"m":
+						DiasCapt <- 30
+					"b":
+						DiasCapt <- 60
+					"t":
+						DiasCapt <- 90
+					"c":
+						DiasCapt <- 120
+					"s":
+						DiasCapt <- 180
+					"a":
+						DiasCapt <- 360
+				FinSegun
+
+				// asignacion
+				PerAnno <- DxA/FreCupon
+				TPeriodo <- PerAnno*NA  // numero de años
+
+				Segun TDeTasa  Hacer
+					"e":
+						TEA <- TI
+					"n":
+						TEA <- (((1+TI/(DxA/DiasCapt))^(DxA/DiasCapt))-1)
+				FinSegun
+				
+				TEP <- ((1+TEA)^(FreCupon/DxA))-1
+				COK <- ((1+TAD)^(FreCupon/DxA))-1
+				PrecioA <- 0
+				contador <- 1
+				Mientras contador<=TPeriodo Hacer
+					Si contador==TPeriodo Entonces
+						PrecioA <- ((VNominal*TEP+VNominal*1/100+VNominal)/((1+COK)^contador))+PrecioA
+					SiNo
+						PrecioA <- ((VNominal*TEP)/((1+COK)^contador))+PrecioA
+					FinSi
+					contador <- contador+1
+				FinMientras
+				UtiPer <- PrecioA-(VComercial+CB);
+				valor1 <- 0
+				valor2 <- 0
+				contador <- 1
+				Mientras contador<=TPeriodo Hacer
+					Si contador==TPeriodo Entonces
+						valor1 <- ((VNominal*TEP+VNominal*1/100+VNominal)/((1+COK)^contador))+valor1;
+						valor2 <- (((VNominal*TEP+VNominal*1/100+VNominal)/((1+COK)^contador))*contador*FreCupon/DxA)+valor2;
+						valor3 <- ((VNominal*TEP+VNominal*1/100+VNominal)/((1+COK)^contador))*contador*(contador+1)+valor3;
+					SiNo
+						valor1 <- ((VNominal*TEP)/((1+COK)^contador))+valor1;
+						valor2 <- (((VNominal*TEP)/((1+COK)^contador))*contador*FreCupon/DxA)+valor2;
+						valor3 <- ((VNominal*TEP)/((1+COK)^contador))*contador*(contador+1)+valor3;
+					FinSi
+					contador <- contador+1
+				FinMientras
+				Duracion <- valor2/valor1
+				Convexidad <- valor3/(((1+COK)^2)*valor1*((DxA/FreCupon)^2))
+				Total <- Duracion+Convexidad
+				DuracionM <- Duracion/(1+COK)
+				Borrar Pantalla
+				Escribir 'Precio Actual: S/',PrecioA;
+				Escribir 'Utilidad / Pérdida: S/',UtiPer;
+				Escribir 'Duración: ',Duracion;
+				Escribir 'Convexidad: ',Convexidad;
+				Escribir 'Total: ',Total;
+				Escribir 'Duración modificada: ',Duracion
+				Escribir 'VAN: ',inv-PrecioA;
+				Si (inv-PrecioA)>0 Entonces
+					Escribir "(VAN > 0) Es rentable";
+				SiNo
+					Escribir "(VAN < 0) No es rentable";
+				FinSi
+				Escribir 'TIR: ';
+				Leer opc
+			FinSi
+		Hasta Que opc=='c'
+	Hasta Que Falso
+FinAlgoritmo

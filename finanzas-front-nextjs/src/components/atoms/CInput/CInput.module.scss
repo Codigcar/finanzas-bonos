@@ -1,0 +1,9 @@
+@import "@styles/settings";
+
+.borderError {
+  border: 2.2px solid $red !important;
+}
+.msgError {
+  font-weight: bold;
+  color: $red;
+}

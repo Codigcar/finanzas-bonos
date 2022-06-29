@@ -1,0 +1,20 @@
+@import "@styles/settings";
+
+.CButton {
+  &Div {
+    width: 100%;
+    display: flex;
+    justify-content: start;
+    margin-bottom: 30px;
+    margin-top: 10px;
+  }
+  &Button {
+    background-color: $primary-color;
+    width: 20%;
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    margin-top: 20px;
+    padding: 8px 10px;
+  }
+}
