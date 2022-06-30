@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Account = void 0;
 const typeorm_1 = require("typeorm");
-const honorary_mode_1 = require("./honorary.mode");
+const bonos_mode_1 = require("./bonos.mode");
 let Account = class Account extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -39,11 +39,7 @@ __decorate([
     __metadata("design:type", String)
 ], Account.prototype, "dni", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => honorary_mode_1.Honorary, honorary => honorary.account),
-    __metadata("design:type", Array)
-], Account.prototype, "honoraries", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => honorary_mode_1.Honorary, honorary => honorary.account),
+    (0, typeorm_1.OneToMany)(() => bonos_mode_1.Bono, bono => bono.account),
     __metadata("design:type", Array)
 ], Account.prototype, "bonos", void 0);
 Account = __decorate([

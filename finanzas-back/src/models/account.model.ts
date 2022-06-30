@@ -1,6 +1,5 @@
 import {Entity, Column, PrimaryGeneratedColumn, BaseEntity, OneToMany} from 'typeorm'
 import { Bono } from './bonos.mode';
-import { Honorary } from './honorary.mode';
 
 @Entity('accounts')
 export class Account extends BaseEntity {
@@ -24,10 +23,7 @@ export class Account extends BaseEntity {
   @Column()
   dni: string;
 
-  @OneToMany(() => Honorary, honorary => honorary.account)
-  honoraries: Honorary[];
-
-  @OneToMany(() => Honorary, honorary => honorary.account)
+  @OneToMany(() => Bono, bono => bono.account)
   bonos: Bono[];
 
 

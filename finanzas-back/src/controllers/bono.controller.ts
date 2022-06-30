@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { getRepository } from "typeorm";
 import { Account } from "../models/account.model";
 import { Bono } from '../models/bonos.mode';
-import { Honorary } from "../models/honorary.mode";
 import {irr} from 'node-irr'
 export const createBono = async (req: Request, res: Response) => {
   let {
@@ -17,10 +16,11 @@ export const createBono = async (req: Request, res: Response) => {
     TAD, // TAsa anual de descuento
     IR, // Importe a la renta
     FEmision, // Fecha de Emision
-    inv, // Inversion
+    inv = VNominal , // Inversion
     moneda,
     accountId,
-    saveBD = false
+    saveBD = false,
+    dolar
   } = req.body;
 
     TI = (TI*1.0) / 100;
@@ -132,9 +132,11 @@ export const createBono = async (req: Request, res: Response) => {
     while (contador <= TPeriodo) {
       if(contador == TPeriodo){
         PrecioA = ((VNominal*TEP+VNominal*1/100+VNominal)/Math.pow((1+COK),contador))+PrecioA;
+        console.log('iteracion n: ', PrecioA);
       }
       else {
-        PrecioA = ((VNominal*TEP)/Math.pow((1+COK),contador))+PrecioA;
+        PrecioA = ((VNominal*TEP)/Math.pow((1+COK),contador))+ PrecioA;
+        console.log(`iteracion[] ${contador}`, PrecioA);
       } 
       contador++;
     }
@@ -146,6 +148,16 @@ export const createBono = async (req: Request, res: Response) => {
     let valor2 = 0.0;
     let valor3 = 0.0;
 
+    // TODO:TIR
+    let flujoBonistaList = [];
+    let TIR = 0;
+
+    const flujoBonitaItem = VNominal*TEP;
+
+    const prima =  VNominal*1.0/100;
+    console.log('Flujo bonista 0: ', -VComercial - CB);
+    flujoBonistaList.push(-VComercial - CB);
+
     contador = 1;
     while (contador <= TPeriodo) {
       if (contador == TPeriodo){
@@ -156,11 +168,21 @@ export const createBono = async (req: Request, res: Response) => {
         valor1 = ((VNominal*TEP)/Math.pow((1+COK),contador))+valor1;
         valor2 = (((VNominal*TEP)/Math.pow((1+COK),contador))*contador*FreCupon/DXA)+valor2;
         valor3 = ((VNominal*TEP)/Math.pow((1+COK),contador))*contador*(contador+1)+valor3;
+        console.log(`Flujo bonista: ${contador}`, VNominal*TEP);
+        flujoBonistaList.push(VNominal*TEP);
       }
-      console.log(`sumita: ${contador}`, VNominal*TEP);
-      console.log(`sumita2: ${contador}`, VNominal*TEP+(VNominal/100)+VNominal);
       contador++;
     }
+    // console.log('flujo bonista: n ', -VNominal-flujoBonitaItem-prima);
+    console.log('flujo bonista: n ', (((VNominal*TEP+VNominal*1/100+VNominal)/Math.pow((1+COK),TPeriodo))*Math.pow((1+COK),TPeriodo)))
+    flujoBonistaList.push(((VNominal*TEP+VNominal*1/100+VNominal)/Math.pow((1+COK),TPeriodo))*Math.pow((1+COK),TPeriodo))
+    console.log({flujoBonistaList});
+    TIR = irr(flujoBonistaList);
+    
+    //TODO: TIR
+
+    console.log('iterador 11: ', (VNominal+TEP));
+    console.log('prima: ',prima)
     console.log({contador});
 
     
@@ -180,9 +202,38 @@ export const createBono = async (req: Request, res: Response) => {
     console.log('Precio Actual: S/',PrecioA);
     let VAN = PrecioA-inv;
 
-    let TIR = 0;
 
     // save
+
+    PrecioA = Number(PrecioA.toFixed(2));
+    Utiper = Number(Utiper.toFixed(2));
+    VAN = Number(VAN.toFixed(2));
+    Duracion = Number(Duracion.toFixed(7));
+    Convexidad = Number(Convexidad.toFixed(7));
+    Total = Number(Total.toFixed(7));
+    TIR = Number(TIR.toFixed(7));
+
+    let VANDescripcion = "";
+    if(VAN > 0){
+      VANDescripcion = "Rentable"
+    }
+    if(VAN < 0){
+      VANDescripcion = "No Rentable"
+    }
+    if(VAN == 0){
+      VANDescripcion = "Indiferente"
+    }
+    let TIRDescripcion = "";
+
+    if(TIR > COK){
+      TIRDescripcion = "Rentable"
+    }
+    if(TIR < COK){
+      TIRDescripcion = "No Rentable"
+    }
+    if(TIR == COK){
+      TIRDescripcion = "Indiferente"
+    }
 
     const newBono = {
       VNominal,
@@ -198,6 +249,7 @@ export const createBono = async (req: Request, res: Response) => {
       FEmision,
       inv,
       moneda,
+      dolar,
 
       precioActual: PrecioA,
       utilidad_o_Perdida: Utiper,
@@ -206,33 +258,21 @@ export const createBono = async (req: Request, res: Response) => {
       total: Total,
       duracionModificada: Duracion,
       VAN: VAN,
-      TIR: TIR,
+      TIR: TIR*100,
       account: accountId,
+      TIRDescripcion,
+      VANDescripcion
     }
+
+
+
     if(saveBD){
       const result = await getRepository(Bono).save(newBono as any);
-
-      console.log({result});
-      
       return res.json({
         ok: true,
         body: result
       })
     }
-
-    console.log('TIR: ',irr([
-      -1059.98,
-      39.23, 
-      39.23, 
-      39.23, 
-      39.23, 
-      39.23, 
-      39.23, 
-      39.23, 
-      39.23, 
-      39.23, 
-      1049.23 
-    ]))
 
     return res.json({
       ok: true,
@@ -262,16 +302,28 @@ export const getBonosByUserId = async (req: Request, res: Response) => {
 };
 
 export const updateBonoByUserId = async (req: Request, res: Response) => {
+
   const { id } = req.params;
-  const body = req.body;
-  console.log({body});
+  let bonoInput:any = req.body;
   
   try {
-    const bono = await Bono.findOne({ where: {id}});
-    if (!bono) return res.status(404).json({ message: "Not user found" });
+    const bonoBD:any = await Bono.findOne({ where: {id}});
+    if (!bonoBD) return res.status(404).json({ message: "Not user found" });
+    
+    if(bonoInput.moneda !==  bonoBD.moneda){
+      if(bonoInput.moneda == "S/"){
+        bonoInput.precioActual = (bonoBD.precioActual*bonoInput.dolar).toFixed(2);
+        bonoInput.utilidad_o_Perdida = (bonoBD.utilidad_o_Perdida*bonoInput.dolar).toFixed(2);
+        bonoInput.VAN = (bonoBD.VAN*bonoInput.dolar).toFixed(2);
+      } else {
+        bonoInput.precioActual = (bonoBD.precioActual/bonoInput.dolar).toFixed(2);
+        bonoInput.utilidad_o_Perdida = (bonoBD.utilidad_o_Perdida/bonoInput.dolar).toFixed(2);
+        bonoInput.VAN = (bonoBD.VAN/bonoInput.dolar).toFixed(2);
+      }
+    }
 
     const resp = await Bono.save({
-      ...req.body
+      ...bonoInput
     });
     console.log({resp});
     

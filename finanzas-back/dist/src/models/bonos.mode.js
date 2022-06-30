@@ -73,6 +73,10 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
+], Bono.prototype, "dolar", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
 ], Bono.prototype, "precioActual", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
@@ -101,7 +105,15 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
+], Bono.prototype, "VANDescripcion", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
 ], Bono.prototype, "TIR", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Bono.prototype, "TIRDescripcion", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => account_model_1.Account, (account) => account.bonos),
     __metadata("design:type", account_model_1.Account)

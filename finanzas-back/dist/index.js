@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const users_routes_1 = __importDefault(require("./src/routes/users.routes"));
-const honorary_routes_1 = __importDefault(require("./src/routes/honorary.routes"));
 const bono_routes_1 = __importDefault(require("./src/routes/bono.routes"));
 require("reflect-metadata");
 const databaseconfig_1 = require("./src/database/databaseconfig");
@@ -24,7 +23,6 @@ class Server {
         // private usuariosPath: string;
         this.apiPaths = {
             usuarios: '/api/v1/users',
-            honoraries: '/api/v1/honoraries',
             bonos: '/api/v1/bonos',
         };
         this.app = (0, express_1.default)();
@@ -53,7 +51,6 @@ class Server {
     routes() {
         // this.app.use(this.authPath, require('./src/routes/users'));
         this.app.use(this.apiPaths.usuarios, users_routes_1.default);
-        this.app.use(this.apiPaths.honoraries, honorary_routes_1.default);
         this.app.use(this.apiPaths.bonos, bono_routes_1.default);
     }
     listen() {

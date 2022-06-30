@@ -17,8 +17,8 @@ const dbConnection = () => __awaiter(void 0, void 0, void 0, function* () {
             type: "mysql",
             host: "localhost",
             port: 3306,
-            username: "root",
-            password: "1231",
+            username: process.env.BD_username,
+            password: process.env.BD_password,
             database: "finanzas",
             entities: ["dist/src/models/**/*.js"],
             synchronize: true

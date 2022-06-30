@@ -38,6 +38,8 @@ export class Bono extends BaseEntity {
   inv: string;
   @Column()
   moneda: string;
+  @Column()
+  dolar: string;
 
   @Column()
   precioActual: string;
@@ -61,7 +63,13 @@ export class Bono extends BaseEntity {
   VAN: string;
 
   @Column()
+  VANDescripcion: string;
+
+  @Column()
   TIR: string;
+
+  @Column()
+  TIRDescripcion: string;
 
   @ManyToOne(() => Account, (account) => account.bonos)
   account: Account;

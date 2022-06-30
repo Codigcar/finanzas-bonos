@@ -23,8 +23,8 @@ const createBono = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     TAD, // TAsa anual de descuento
     IR, // Importe a la renta
     FEmision, // Fecha de Emision
-    inv, // Inversion
-    moneda, accountId, saveBD = false } = req.body;
+    inv = VNominal, // Inversion
+    moneda, accountId, saveBD = false, dolar } = req.body;
     TI = (TI * 1.0) / 100;
     console.log({ TI });
     TAD = (TAD * 1.0) / 100;
@@ -114,9 +114,11 @@ const createBono = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     while (contador <= TPeriodo) {
         if (contador == TPeriodo) {
             PrecioA = ((VNominal * TEP + VNominal * 1 / 100 + VNominal) / Math.pow((1 + COK), contador)) + PrecioA;
+            console.log('iteracion n: ', PrecioA);
         }
         else {
             PrecioA = ((VNominal * TEP) / Math.pow((1 + COK), contador)) + PrecioA;
+            console.log(`iteracion[] ${contador}`, PrecioA);
         }
         contador++;
     }
@@ -125,6 +127,13 @@ const createBono = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     let valor1 = 0.0;
     let valor2 = 0.0;
     let valor3 = 0.0;
+    // TODO:TIR
+    let flujoBonistaList = [];
+    let TIR = 0;
+    const flujoBonitaItem = VNominal * TEP;
+    const prima = VNominal * 1.0 / 100;
+    console.log('Flujo bonista 0: ', -VComercial - CB);
+    flujoBonistaList.push(-VComercial - CB);
     contador = 1;
     while (contador <= TPeriodo) {
         if (contador == TPeriodo) {
@@ -136,11 +145,19 @@ const createBono = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             valor1 = ((VNominal * TEP) / Math.pow((1 + COK), contador)) + valor1;
             valor2 = (((VNominal * TEP) / Math.pow((1 + COK), contador)) * contador * FreCupon / DXA) + valor2;
             valor3 = ((VNominal * TEP) / Math.pow((1 + COK), contador)) * contador * (contador + 1) + valor3;
+            console.log(`Flujo bonista: ${contador}`, VNominal * TEP);
+            flujoBonistaList.push(VNominal * TEP);
         }
-        console.log(`sumita: ${contador}`, VNominal * TEP);
-        console.log(`sumita2: ${contador}`, VNominal * TEP + (VNominal / 100) + VNominal);
         contador++;
     }
+    // console.log('flujo bonista: n ', -VNominal-flujoBonitaItem-prima);
+    console.log('flujo bonista: n ', (((VNominal * TEP + VNominal * 1 / 100 + VNominal) / Math.pow((1 + COK), TPeriodo)) * Math.pow((1 + COK), TPeriodo)));
+    flujoBonistaList.push(((VNominal * TEP + VNominal * 1 / 100 + VNominal) / Math.pow((1 + COK), TPeriodo)) * Math.pow((1 + COK), TPeriodo));
+    console.log({ flujoBonistaList });
+    TIR = (0, node_irr_1.irr)(flujoBonistaList);
+    //TODO: TIR
+    console.log('iterador 11: ', (VNominal + TEP));
+    console.log('prima: ', prima);
     console.log({ contador });
     let Duracion = valor2 / valor1;
     console.log({ Duracion });
@@ -152,8 +169,34 @@ const createBono = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     console.log({ DuracionM });
     console.log('Precio Actual: S/', PrecioA);
     let VAN = PrecioA - inv;
-    let TIR = 0;
     // save
+    PrecioA = Number(PrecioA.toFixed(2));
+    Utiper = Number(Utiper.toFixed(2));
+    VAN = Number(VAN.toFixed(2));
+    Duracion = Number(Duracion.toFixed(7));
+    Convexidad = Number(Convexidad.toFixed(7));
+    Total = Number(Total.toFixed(7));
+    TIR = Number(TIR.toFixed(7));
+    let VANDescripcion = "";
+    if (VAN > 0) {
+        VANDescripcion = "Rentable";
+    }
+    if (VAN < 0) {
+        VANDescripcion = "No Rentable";
+    }
+    if (VAN == 0) {
+        VANDescripcion = "Indiferente";
+    }
+    let TIRDescripcion = "";
+    if (TIR > COK) {
+        TIRDescripcion = "Rentable";
+    }
+    if (TIR < COK) {
+        TIRDescripcion = "No Rentable";
+    }
+    if (TIR == COK) {
+        TIRDescripcion = "Indiferente";
+    }
     const newBono = {
         VNominal,
         VComercial,
@@ -168,6 +211,7 @@ const createBono = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         FEmision,
         inv,
         moneda,
+        dolar,
         precioActual: PrecioA,
         utilidad_o_Perdida: Utiper,
         duracion: Duracion,
@@ -175,30 +219,18 @@ const createBono = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         total: Total,
         duracionModificada: Duracion,
         VAN: VAN,
-        TIR: TIR,
+        TIR: TIR * 100,
         account: accountId,
+        TIRDescripcion,
+        VANDescripcion
     };
     if (saveBD) {
         const result = yield (0, typeorm_1.getRepository)(bonos_mode_1.Bono).save(newBono);
-        console.log({ result });
         return res.json({
             ok: true,
             body: result
         });
     }
-    console.log('TIR: ', (0, node_irr_1.irr)([
-        -1059.98,
-        39.23,
-        39.23,
-        39.23,
-        39.23,
-        39.23,
-        39.23,
-        39.23,
-        39.23,
-        39.23,
-        1049.23
-    ]));
     return res.json({
         ok: true,
         body: newBono
@@ -227,13 +259,24 @@ const getBonosByUserId = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.getBonosByUserId = getBonosByUserId;
 const updateBonoByUserId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const body = req.body;
-    console.log({ body });
+    let bonoInput = req.body;
     try {
-        const bono = yield bonos_mode_1.Bono.findOne({ where: { id } });
-        if (!bono)
+        const bonoBD = yield bonos_mode_1.Bono.findOne({ where: { id } });
+        if (!bonoBD)
             return res.status(404).json({ message: "Not user found" });
-        const resp = yield bonos_mode_1.Bono.save(Object.assign({}, req.body));
+        if (bonoInput.moneda !== bonoBD.moneda) {
+            if (bonoInput.moneda == "S/") {
+                bonoInput.precioActual = (bonoBD.precioActual * bonoInput.dolar).toFixed(2);
+                bonoInput.utilidad_o_Perdida = (bonoBD.utilidad_o_Perdida * bonoInput.dolar).toFixed(2);
+                bonoInput.VAN = (bonoBD.VAN * bonoInput.dolar).toFixed(2);
+            }
+            else {
+                bonoInput.precioActual = (bonoBD.precioActual / bonoInput.dolar).toFixed(2);
+                bonoInput.utilidad_o_Perdida = (bonoBD.utilidad_o_Perdida / bonoInput.dolar).toFixed(2);
+                bonoInput.VAN = (bonoBD.VAN / bonoInput.dolar).toFixed(2);
+            }
+        }
+        const resp = yield bonos_mode_1.Bono.save(Object.assign({}, bonoInput));
         console.log({ resp });
         return res.status(200).json({
             ok: true,
