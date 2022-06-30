@@ -25,9 +25,10 @@ type FormData = {
   TAD: number;
   IR: number;
   FEmision: string;
-  inv: number;
   moneda: string;
   dolar: number;
+  TIRDescripcion: string;
+  VANDescripcion: string;
 };
 
 const Home: NextPage = () => {
@@ -35,20 +36,20 @@ const Home: NextPage = () => {
   const [saveFormData, setSaveFormData] = useState<any>(null);
 
   const router = useRouter();
-  const bonoData = router.query.data
+  const bonoBD = router.query.data
     ? JSON.parse(router.query.data.toString())
     : null;
   useEffect(() => {
-    if (bonoData) {
+    if (bonoBD) {
       setCalculate({
-        moneda: bonoData.moneda,
-        precioActual: bonoData.precioActual,
-        utilidad_o_Perdida: bonoData.utilidad_o_Perdida,
-        duracion: bonoData.duracion,
-        convexidad: bonoData.convexidad,
-        total: bonoData.total,
-        duracionModificada: bonoData.duracionModificada,
-        VAN: bonoData.VAN,
+        moneda: bonoBD.moneda,
+        precioActual: bonoBD.precioActual,
+        utilidad_o_Perdida: bonoBD.utilidad_o_Perdida,
+        duracion: bonoBD.duracion,
+        convexidad: bonoBD.convexidad,
+        total: bonoBD.total,
+        duracionModificada: bonoBD.duracionModificada,
+        VAN: bonoBD.VAN,
       });
     }
   }, []);
@@ -88,10 +89,6 @@ const Home: NextPage = () => {
           .typeError(textValidatorGlobal.required)
           .required(textValidatorGlobal.required),
         FEmision: yup.string().required(textValidatorGlobal.required),
-        inv: yup
-          .number()
-          .typeError(textValidatorGlobal.required)
-          .required(textValidatorGlobal.required),
       }),
     []
   );
@@ -100,34 +97,83 @@ const Home: NextPage = () => {
     mode: "onChange",
     resolver: useYupValidationResolver(validationSchema),
     defaultValues: {
-      VNominal: bonoData?.VNominal,
-      VComercial: bonoData?.VComercial,
-      NA: bonoData?.NA,
-      Fcupon: bonoData?.Fcupon,
-      DXA: bonoData?.DXA,
-      TDeTasa: bonoData?.TDeTasa || "n",
-      Capit: bonoData?.Capit,
-      TI: bonoData?.TI,
-      TAD: bonoData?.TAD,
-      IR: bonoData?.IR,
-      FEmision: bonoData?.FEmision,
-      inv: bonoData?.inv,
-      moneda: bonoData?.moneda,
-      dolar: 3.81,
+      VNominal: bonoBD?.VNominal,
+      VComercial: bonoBD?.VComercial,
+      NA: bonoBD?.NA,
+      Fcupon: bonoBD?.Fcupon,
+      DXA: bonoBD?.DXA,
+      TDeTasa: bonoBD?.TDeTasa || "n",
+      Capit: bonoBD?.Capit,
+      TI: bonoBD?.TI,
+      TAD: bonoBD?.TAD,
+      IR: bonoBD?.IR,
+      FEmision: bonoBD?.FEmision,
+      moneda: bonoBD?.moneda,
+      dolar: bonoBD?.dolar || 3.81,
     },
   });
   const { isSubmitting } = methods.formState;
 
   const onSubmit = async (formData: FormData) => {
     setSaveFormData(formData);
-    let { data } = await finanzaApi.post("/bonos", formData);
-    const { ok, body } = data;
-    if (!ok) {
-      toastMessage("error", "No se pudo registrar, intentelo de nuevo");
+    // let { data } = await finanzaApi.post("/bonos", formData);
+    // const { ok, body } = data;
+    // if (!ok) {
+    //   toastMessage("error", "No se pudo registrar, intentelo de nuevo");
+    //   return;
+    // }
+    if (!bonoBD) {
+      console.log("save");
+
+      let { data } = await finanzaApi.post("/bonos", {
+        ...formData,
+        saveBD: true,
+        accountId: localStorage.getItem("id") || "",
+      });
+
+      const { ok, body } = data;
+      if (!ok) {
+        toastMessage("error", "No se pudo registrar, intentelo de nuevo");
+        return;
+      }
+      setCalculate(body);
+      toastMessage("success", "¡Registro exitoso!");
+      return;
+    } else {
+      console.log("edit");
+
+      let { data: respCalc } = await finanzaApi.post("/bonos", {
+        ...formData,
+      });
+      const { ok: okCal, body: bodyCal } = respCalc;
+      if (!okCal) {
+        toastMessage(
+          "error",
+          "No se pudo realizar el calcuclo, intentelo de nuevo"
+        );
+        return;
+      }
+
+      const bodyRequest = {
+        ...bonoBD,
+        ...formData,
+        ...bodyCal,
+      };
+      console.log({ bodyRequest });
+
+      let { data } = await finanzaApi.patch(`/bonos/${bonoBD.id}`, bodyRequest);
+      const { ok, body } = data;
+      console.log({ body });
+
+      if (!ok) {
+        toastMessage("error", "No se pudo guardar cambios, intentelo de nuevo");
+        return;
+      }
+      setCalculate(body);
+      toastMessage("success", "¡Cambios guardardos exitosamente!");
+      // router.back();
       return;
     }
-    setCalculate(body);
-    return;
   };
 
   const saveBD = async () => {
@@ -144,14 +190,14 @@ const Home: NextPage = () => {
       return;
     }
     toastMessage("success", "¡Registro exitoso!");
-    router.back();
+    // router.back();
     return;
   };
 
   const editBD = async () => {
-    let { data } = await finanzaApi.patch(`/bonos/${bonoData.id}`, {
-      ...bonoData,
-      ...calculate,
+    let { data } = await finanzaApi.patch(`/bonos/${bonoBD.id}`, {
+      ...bonoBD,
+      // ...calculate,
     });
     const { ok } = data;
     if (!ok) {
@@ -159,7 +205,7 @@ const Home: NextPage = () => {
       return;
     }
     toastMessage("success", "¡Cambios guardardos exitosamente!");
-    router.back();
+    // router.back();
     return;
   };
 
@@ -277,6 +323,8 @@ const Home: NextPage = () => {
                 ]}
                 valueName={"name"}
               />
+            </div>
+            <div className="w-2/4 px-7">
               <CSelect
                 name="TDeTasa"
                 label={"Tipo de tasa de Interés"}
@@ -293,8 +341,6 @@ const Home: NextPage = () => {
                 ]}
                 valueName={"name"}
               />
-            </div>
-            <div className="w-2/4 px-7">
               {methods.watch("TDeTasa")?.toString() == "n" && (
                 <CSelect
                   name="Capit"
@@ -363,7 +409,7 @@ const Home: NextPage = () => {
                 classNameLabel={styles.CInputLabel}
                 classNameInput={styles.CInputInput}
                 name="IR"
-                label={"Importe a la renta"}
+                label={"Importe a la renta (%)"}
                 placeholder={"Escriba aquí"}
                 type="number"
                 step="any"
@@ -377,38 +423,19 @@ const Home: NextPage = () => {
                 placeholder={"Escriba aquí"}
                 type="date"
               />
-              <CInput
-                classNameDiv={styles.CInputDiv}
-                classNameLabel={styles.CInputLabel}
-                classNameInput={styles.CInputInput}
-                name="inv"
-                label={"Inversión"}
-                placeholder={"Escriba aquí"}
-                type="number"
-                step="any"
-              />
               <div className="flex">
                 <CButton
                   classNameDiv={styles.CButtonDiv}
                   classNameButton={styles.CButtonButton2}
-                  label={"Cancelar"}
+                  label={"Regresar"}
                   type="button"
                   onClick={() => router.back()}
                 />
                 <CButton
                   classNameDiv={styles.CButtonDiv}
                   classNameButton={styles.CButtonButton}
-                  label={"Calcular"}
+                  label={bonoBD ? "Editar" : "Guardar"}
                   loading={isSubmitting}
-                />
-                <CButton
-                  classNameDiv={styles.CButtonDiv}
-                  classNameButton={styles.CButtonButton}
-                  label={bonoData ? "Editar" : "Guardar"}
-                  loading={isSubmitting}
-                  type="button"
-                  disable={saveFormData ? false : true}
-                  onClick={() => (bonoData ? editBD() : saveBD())}
                 />
               </div>
             </div>
@@ -429,7 +456,9 @@ const Home: NextPage = () => {
                   <th scope="col">Total</th>
                   <th scope="col">Duración modificada</th>
                   <th scope="col">VAN</th>
-                  <th scope="col">TIR</th>
+                  <th scope="col">VAN Desc.</th>
+                  <th scope="col">TIR %</th>
+                  <th scope="col">TIR Desc.</th>
                 </tr>
               </thead>
               <tbody className="table-group-divider">
@@ -443,7 +472,9 @@ const Home: NextPage = () => {
                   <td>{calculate.total}</td>
                   <td>{calculate.duracionModificada}</td>
                   <td>{calculate.VAN}</td>
-                  <td>TIR</td>
+                  <td>{calculate.VANDescripcion}</td>
+                  <td>{calculate.TIR}</td>
+                  <td>{calculate.TIRDescripcion}</td>
                 </tr>
               </tbody>
             </table>

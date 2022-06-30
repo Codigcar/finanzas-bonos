@@ -40,7 +40,9 @@ const AddBono: NextPage = ({ body }: any) => {
               <th scope="col">Total</th>
               <th scope="col">Duración modificada</th>
               <th scope="col">VAN</th>
+              <th scope="col">VAN Desc.</th>
               <th scope="col">TIR</th>
+              <th scope="col">TIR Desc.</th>
               <th scope="col">Editar</th>
             </tr>
           </thead>
@@ -58,7 +60,9 @@ const AddBono: NextPage = ({ body }: any) => {
                   <td>{item.total}</td>
                   <td>{item.duracionModificada}</td>
                   <td>{item.VAN}</td>
-                  <td>TIR</td>
+                  <td>{item.VANDescripcion}</td>
+                  <td>{item.TIR}</td>
+                  <td>{item.TIRDescripcion}</td>
                   <td className="flex items-center justify-center cursor-pointer bg-slate-800">
                     <div
                       onClick={() => {
